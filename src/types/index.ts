@@ -34,3 +34,11 @@ export interface CreateRoomFormData {
   maxParticipants: number;
   recordingEnabled: boolean;
 }
+
+export interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
