@@ -1,26 +1,215 @@
 @import "tailwindcss";
 
 :root {
+  /* Newspaper-inspired black and white color palette */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+  --surface: #ffffff;
+  --surface-secondary: #f8f8f8;
+  --border: #e0e0e0;
+  --border-light: #f0f0f0;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --accent: #000000;
+  --accent-hover: #333333;
+  --success: #000000;
+  --warning: #000000;
+  --error: #000000;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.05);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #000000;
+    --foreground: #ffffff;
+    --surface: #000000;
+    --surface-secondary: #1a1a1a;
+    --border: #333333;
+    --border-light: #2a2a2a;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-tertiary: #999999;
+    --accent: #ffffff;
+    --accent-hover: #e0e0e0;
+    --success: #ffffff;
+    --warning: #ffffff;
+    --error: #ffffff;
+    --shadow-sm: 0 1px 3px rgba(255, 255, 255, 0.05);
+    --shadow-md: 0 2px 8px rgba(255, 255, 255, 0.05);
+    --shadow-lg: 0 4px 16px rgba(255, 255, 255, 0.05);
+    --shadow-xl: 0 8px 32px rgba(255, 255, 255, 0.05);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Newspaper-inspired utility classes */
+.apple-surface {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.apple-surface-elevated {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.apple-button-primary {
+  background: var(--surface);
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+}
+
+.apple-button-primary:hover {
+  background: var(--accent);
+  color: var(--surface);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.apple-button-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.apple-button-secondary {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+}
+
+.apple-button-secondary:hover {
+  background: var(--accent);
+  color: var(--surface);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.apple-button-secondary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.apple-input {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 16px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.apple-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.apple-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.apple-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Chip/Tag styles */
+.apple-chip {
+  background: var(--accent);
+  color: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+}
+
+.apple-chip:hover {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.apple-chip-secondary {
+  background: var(--accent);
+  color: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }

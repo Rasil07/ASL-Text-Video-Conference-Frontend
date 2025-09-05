@@ -2,12 +2,14 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { verifyToken } from "@/api/auth";
+import { UserResponse } from "@/types";
 
 import browserCookie from "@/lib/cookie";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
+  user: UserResponse | null;
   verifyAuth: () => Promise<boolean>;
   logout: () => void;
 }
@@ -28,14 +30,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [user, setUser] = useState<UserResponse | null>(null);
 
   const verifyAuth = async (): Promise<boolean> => {
     try {
       const token = browserCookie.getBrowserToken();
       if (!token) {
         setIsAuthenticated(false);
-
+        setUser(null);
         return false;
+      }
+
+      // Get user data from cookie
+      const userData = browserCookie.getBrowserUser();
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (e) {
+          console.error("Failed to parse user data:", e);
+        }
       }
 
       // Verify token with API server
@@ -50,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         browserCookie.removeBrowserToken();
         browserCookie.removeBrowserUser();
         setIsAuthenticated(false);
+        setUser(null);
 
         return false;
       }
@@ -59,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       browserCookie.removeBrowserToken();
       browserCookie.removeBrowserUser();
       setIsAuthenticated(false);
+      setUser(null);
 
       return false;
     }
@@ -68,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     browserCookie.removeBrowserToken();
     browserCookie.removeBrowserUser();
     setIsAuthenticated(false);
+    setUser(null);
   };
 
   useEffect(() => {
@@ -90,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         value={{
           isAuthenticated: false,
           isLoading: true,
+          user: null,
           verifyAuth,
           logout,
         }}
@@ -104,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const value: AuthContextType = {
     isAuthenticated,
     isLoading,
+    user,
     verifyAuth,
     logout,
   };

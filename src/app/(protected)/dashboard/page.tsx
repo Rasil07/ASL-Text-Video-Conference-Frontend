@@ -1,96 +1,189 @@
 "use client";
 
-import LiveGestureDetector from "@/components/LiveGestureDetector";
-import { loadHandLandmarker } from "@/lib/mediaLoader";
-import { HandLandmarker } from "@mediapipe/tasks-vision";
-
-import { useEffect, useState } from "react";
-
-import Image from "next/image";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveMeetings } from "@/hooks/useMeetings";
+import MeetingGrid from "@/components/MeetingGrid";
+import CreateMeetingForm from "@/components/CreateMeetingForm";
 
 export default function Dashboard() {
-  const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(
-    null
-  );
-  const { logout } = useAuth();
-
-  useEffect(() => {
-    loadHandLandmarker().then((handLandmarker) => {
-      setHandLandmarker(handLandmarker);
-    });
-  }, []);
+  const { logout, user } = useAuth();
+  const { data: meetings, isLoading, error, refetch } = useActiveMeetings();
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const handleLogout = () => {
     logout();
-    // The AuthContext will handle the redirect
   };
 
+  const handleCreateSuccess = () => {
+    setShowCreateForm(false);
+    refetch(); // Refresh the meetings list
+  };
+
+  const handleCreateCancel = () => {
+    setShowCreateForm(false);
+  };
+
+  if (showCreateForm) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <button
+              onClick={handleCreateCancel}
+              className="bg-white text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-md px-4 py-2 font-medium hover:bg-black hover:text-white hover:border-black transition-all duration-300 ease-out flex items-center space-x-2"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              <span>Back to Dashboard</span>
+            </button>
+          </div>
+          <CreateMeetingForm
+            onSuccess={handleCreateSuccess}
+            onCancel={handleCreateCancel}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <div className="w-full flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Live Gesture Detector (MVP)</h1>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-        >
-          Logout
-        </button>
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      {/* Header */}
+      <div className="border-b-2 border-gray-200 dark:border-gray-700 py-6 mb-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                ASL Video Conference
+              </h1>
+              <p className="text-sm mt-1 text-gray-600 dark:text-gray-300">
+                Welcome back, {user?.name || "User"}!
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="bg-white text-black border-2 border-black rounded-md px-4 py-2 font-medium hover:bg-black hover:text-white transition-all duration-300 ease-out flex items-center space-x-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                <span>Create Meeting</span>
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="bg-white text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-md px-4 py-2 font-medium hover:bg-black hover:text-white hover:border-black transition-all duration-300 ease-out flex items-center space-x-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="flex items-center justify-center">
-        {handLandmarker && (
-          <LiveGestureDetector handLandmarker={handLandmarker} />
-        )}
-      </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
+                Active Meetings
+              </h2>
+              <p className="text-sm mt-1 text-gray-600 dark:text-gray-300">
+                Join ongoing conversations and learning sessions
+              </p>
+            </div>
+            <button
+              onClick={() => refetch()}
+              className="bg-white text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-md px-4 py-2 font-medium hover:bg-black hover:text-white hover:border-black transition-all duration-300 ease-out flex items-center space-x-2"
+            >
+              <svg
+                className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span>Refresh</span>
+            </button>
+          </div>
 
-      <footer className="flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {error && (
+            <div className="bg-white dark:bg-gray-900 border-2 border-red-500 rounded-md p-6 mb-8">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="w-5 h-5 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-semibold text-red-500">
+                    Error loading meetings
+                  </h3>
+                  <p className="text-sm mt-1 text-gray-600 dark:text-gray-300">
+                    Failed to load active meetings. Please try again.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <MeetingGrid rooms={meetings || []} isLoading={isLoading} />
+        </div>
+      </div>
     </div>
   );
 }
