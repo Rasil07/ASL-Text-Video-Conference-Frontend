@@ -3,16 +3,17 @@
 import LiveGestureDetector from "@/components/LiveGestureDetector";
 import { loadHandLandmarker } from "@/lib/mediaLoader";
 import { HandLandmarker } from "@mediapipe/tasks-vision";
-import { useRouter } from "next/navigation";
+
 import { useEffect, useState } from "react";
 
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
   const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(
     null
   );
-  const router = useRouter();
+  const { logout } = useAuth();
 
   useEffect(() => {
     loadHandLandmarker().then((handLandmarker) => {
@@ -21,10 +22,8 @@ export default function Dashboard() {
   }, []);
 
   const handleLogout = () => {
-    // Remove the token cookie
-    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    // Redirect to login
-    router.push("/auth/login");
+    logout();
+    // The AuthContext will handle the redirect
   };
 
   return (

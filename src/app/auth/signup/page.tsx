@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Link from "next/link";
+import { useRegisterMutation } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
@@ -31,8 +32,29 @@ type FormData = {
 };
 
 const Signup = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { verifyAuth } = useAuth();
+
+  const { mutate: registerMutation, isPending } = useRegisterMutation({
+    onSuccess: async (data) => {
+      console.log("Signed Up:", data);
+
+      // Verify the new token with the server
+      const isValid = await verifyAuth();
+
+      if (isValid) {
+        // Token is valid, redirect to dashboard
+        router.push("/dashboard");
+      } else {
+        // Token verification failed
+        setError("root", { message: "Login failed. Please try again." });
+      }
+    },
+    onError: (error) => {
+      console.error("Login failed:", error);
+      setError("root", { message: "Sign Up failed. Please try again." });
+    },
+  });
 
   const {
     register,
@@ -45,26 +67,7 @@ const Signup = () => {
   });
 
   const onSubmit = async (data: FormData) => {
-    setIsLoading(true);
-
-    try {
-      // Here you would typically make an API call to register the user
-      // For now, let's simulate a successful signup by setting a mock token
-      const mockToken = "mock-auth-token-" + Date.now();
-
-      // Set the token in a cookie (you might want to use a proper auth library)
-      document.cookie = `token=${mockToken}; path=/; max-age=${
-        60 * 60 * 24 * 7
-      }`; // 7 days
-
-      // Redirect to the protected home page
-      router.push("/dashboard");
-    } catch (error) {
-      setError("root", { message: "Signup failed. Please try again." });
-      console.error("Signup failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    registerMutation(data);
   };
 
   return (
@@ -91,7 +94,7 @@ const Signup = () => {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Name"
                 {...register("name")}
-                disabled={isLoading}
+                disabled={isPending}
               />
               {errors.name && (
                 <p className="text-red-500 text-xs mt-1">
@@ -110,7 +113,7 @@ const Signup = () => {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 {...register("email")}
-                disabled={isLoading}
+                disabled={isPending}
               />
               {errors.email && (
                 <p className="text-red-500 text-xs mt-1">
@@ -129,7 +132,7 @@ const Signup = () => {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 {...register("password")}
-                disabled={isLoading}
+                disabled={isPending}
               />
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">
@@ -148,7 +151,7 @@ const Signup = () => {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Confirm Password"
                 {...register("confirmPassword")}
-                disabled={isLoading}
+                disabled={isPending}
               />
               {errors.confirmPassword && (
                 <p className="text-red-500 text-xs mt-1">
@@ -167,10 +170,10 @@ const Signup = () => {
           <div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isPending}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {isLoading ? "Creating account..." : "Create account"}
+              {isPending ? "Creating account..." : "Create account"}
             </button>
           </div>
 

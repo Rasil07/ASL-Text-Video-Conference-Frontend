@@ -1,24 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCookie } from "@/api/axios";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RootPage() {
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // Check for token on client side
-    const token = getCookie("token");
-
-    if (token) {
-      // If user is authenticated, redirect to the protected home page
-      router.push("/dashboard");
-    } else {
-      // If no token, redirect to login
-      router.push("/auth/login");
+    if (!isLoading) {
+      if (isAuthenticated) {
+        // User is authenticated, redirect to dashboard
+        router.push("/dashboard");
+      } else {
+        // User is not authenticated, redirect to login
+        router.push("/auth/login");
+      }
     }
-  }, [router]);
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Verifying authentication...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center">

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+
+import { useAuth } from "@/contexts/AuthContext";
+import { useLoginMutation } from "@/hooks/useAuth";
 
 const schema = yup.object().shape({
   email: yup
@@ -26,11 +27,22 @@ type FormData = {
 
 const Login = () => {
   const router = useRouter();
+  const { verifyAuth } = useAuth();
 
-  const { mutate: loginMutation, isPending } = useAuth({
-    onSuccess: (data) => {
+  const { mutate: loginMutation, isPending } = useLoginMutation({
+    onSuccess: async (data) => {
       console.log("Login successful:", data);
-      router.push("/dashboard");
+
+      // Verify the new token with the server
+      const isValid = await verifyAuth();
+
+      if (isValid) {
+        // Token is valid, redirect to dashboard
+        router.push("/dashboard");
+      } else {
+        // Token verification failed
+        setError("root", { message: "Login failed. Please try again." });
+      }
     },
     onError: (error) => {
       console.error("Login failed:", error);
@@ -48,7 +60,6 @@ const Login = () => {
   });
 
   const onSubmit = (data: FormData) => {
-    console.log({ data });
     loginMutation(data);
   };
 

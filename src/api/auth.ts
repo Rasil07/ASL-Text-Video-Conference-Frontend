@@ -1,4 +1,5 @@
-import api, { setCookie } from "./axios";
+import api from "./axios";
+import browserCookie from "@/lib/cookie";
 
 export const verifyToken = async () => {
   const response = await api.post("/auth/verify-token", {});
@@ -10,17 +11,11 @@ export const login = async (email: string, password: string) => {
 
   // Set cookies on the client side
   if (response.data.token) {
-    setCookie("token", response.data.token, {
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    browserCookie.setBrowserToken(response.data.token);
   }
 
   if (response.data.user) {
-    setCookie("user", JSON.stringify(response.data.user), {
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    browserCookie.setBrowserUser(JSON.stringify(response.data.user));
   }
 
   return response.data;
@@ -35,17 +30,11 @@ export const register = async (
 
   // Set cookies on the client side for successful registration
   if (response.data.token) {
-    setCookie("token", response.data.token, {
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    browserCookie.setBrowserToken(response.data.token);
   }
 
   if (response.data.user) {
-    setCookie("user", JSON.stringify(response.data.user), {
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    browserCookie.setBrowserUser(JSON.stringify(response.data.user));
   }
 
   return response.data;
