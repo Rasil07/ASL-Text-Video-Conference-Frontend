@@ -5,11 +5,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useActiveMeetings } from "@/hooks/useMeetings";
 import MeetingGrid from "@/components/MeetingGrid";
 import CreateMeetingForm from "@/components/CreateMeetingForm";
+import { useSocketConnection } from "@/contexts/SocketContext";
 
 export default function Dashboard() {
   const { logout, user } = useAuth();
   const { data: meetings, isLoading, error, refetch } = useActiveMeetings();
   const [showCreateForm, setShowCreateForm] = useState(false);
+
+  const { connected } = useSocketConnection();
+
+  console.log("connected ==>", { connected });
 
   const handleLogout = () => {
     logout();
