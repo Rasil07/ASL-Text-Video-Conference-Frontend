@@ -1,10 +1,10 @@
 "use client";
 
-import { VideoRoom } from "@/types";
+import { MeetingSummary } from "@/types";
 import MeetingCard from "../MeetingCard";
 
 interface MeetingGridProps {
-  rooms: VideoRoom[];
+  rooms: MeetingSummary[];
   isLoading?: boolean;
 }
 
@@ -65,7 +65,7 @@ const MeetingGrid = ({ rooms, isLoading }: MeetingGridProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {rooms.map((room) => (
-        <MeetingCard key={room.id} room={room} />
+        <MeetingCard key={room.code} room={room} />
       ))}
     </div>
   );

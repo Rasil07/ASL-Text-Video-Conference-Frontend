@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useCreateMeetingMutation } from "@/hooks/useMeetings";
-import { CreateRoomFormData } from "@/types";
+import { CreateRoomFormData, IRoom } from "@/types";
 import { useState } from "react";
 
 const schema = yup.object().shape({
@@ -15,27 +15,17 @@ const schema = yup.object().shape({
     .required("Title is required"),
   description: yup
     .string()
-    .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters")
-    .required("Description is required"),
-  category: yup
-    .string()
-    .oneOf(
-      ["general", "education", "business", "social", "gaming", "other"],
-      "Please select a valid category"
-    )
-    .required("Category is required"),
-  isPrivate: yup.boolean().required(),
+    .optional(),
   maxParticipants: yup
     .number()
-    .min(2, "Minimum 2 participants required")
-    .max(50, "Maximum 50 participants allowed")
+    .min(1, "Minimum 1 participant required")
+    .max(20, "Maximum 20 participants allowed")
     .required("Max participants is required"),
-  recordingEnabled: yup.boolean().required(),
-});
+}) as yup.ObjectSchema<CreateRoomFormData>;
 
 interface CreateMeetingFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (response: { success: boolean; room: IRoom }) => void;
   onCancel?: () => void;
 }
 
@@ -43,10 +33,10 @@ const CreateMeetingForm = ({ onSuccess, onCancel }: CreateMeetingFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { mutate: createMeeting } = useCreateMeetingMutation({
-    onSuccess: () => {
+    onSuccess: (response) => {
       setIsSubmitting(false);
       reset();
-      onSuccess?.();
+      onSuccess?.(response);
     },
     onError: (error) => {
       console.error("Failed to create meeting:", error);
@@ -63,34 +53,19 @@ const CreateMeetingForm = ({ onSuccess, onCancel }: CreateMeetingFormProps) => {
     formState: { errors },
     setError,
     reset,
-    watch,
   } = useForm<CreateRoomFormData>({
     resolver: yupResolver(schema),
     defaultValues: {
       title: "",
       description: "",
-      category: "general",
-      isPrivate: false,
-      maxParticipants: 10,
-      recordingEnabled: false,
+      maxParticipants: 20,
     },
   });
-
-  const watchedIsPrivate = watch("isPrivate");
 
   const onSubmit = (data: CreateRoomFormData) => {
     setIsSubmitting(true);
     createMeeting(data);
   };
-
-  const categories = [
-    { value: "general", label: "General" },
-    { value: "education", label: "Education" },
-    { value: "business", label: "Business" },
-    { value: "social", label: "Social" },
-    { value: "gaming", label: "Gaming" },
-    { value: "other", label: "Other" },
-  ];
 
   return (
     <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-8 max-w-2xl mx-auto">
@@ -173,104 +148,32 @@ const CreateMeetingForm = ({ onSuccess, onCancel }: CreateMeetingFormProps) => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label
-              htmlFor="category"
-              className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white"
-            >
-              Category *
-            </label>
-            <select
-              id="category"
-              className={`w-full px-4 py-3 border-2 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all duration-300 ease-out ${
-                errors.category
-                  ? "border-red-500"
-                  : "border-gray-200 dark:border-gray-700"
-              }`}
-              {...register("category")}
-              disabled={isSubmitting}
-            >
-              {categories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-            {errors.category && (
-              <p className="text-sm mt-2 text-red-500">
-                {errors.category.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="maxParticipants"
-              className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white"
-            >
-              Maximum Participants *
-            </label>
-            <input
-              id="maxParticipants"
-              type="number"
-              min="2"
-              max="50"
-              className={`w-full px-4 py-3 border-2 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all duration-300 ease-out ${
-                errors.maxParticipants
-                  ? "border-red-500"
-                  : "border-gray-200 dark:border-gray-700"
-              }`}
-              {...register("maxParticipants", { valueAsNumber: true })}
-              disabled={isSubmitting}
-            />
-            {errors.maxParticipants && (
-              <p className="text-sm mt-2 text-red-500">
-                {errors.maxParticipants.message}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="flex items-center space-x-3">
-            <input
-              id="isPrivate"
-              type="checkbox"
-              className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-black dark:focus:ring-white focus:ring-offset-2 accent-black dark:accent-white"
-              {...register("isPrivate")}
-              disabled={isSubmitting}
-            />
-            <label
-              htmlFor="isPrivate"
-              className="text-sm font-medium text-gray-900 dark:text-white"
-            >
-              Private Meeting
-            </label>
-          </div>
-          {watchedIsPrivate && (
-            <div className="bg-white dark:bg-gray-900 border-2 border-yellow-500 rounded-md p-4">
-              <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                Private meetings require an invitation link to join.
-              </p>
-            </div>
+        <div>
+          <label
+            htmlFor="maxParticipants"
+            className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white"
+          >
+            Maximum Participants *
+          </label>
+          <input
+            id="maxParticipants"
+            type="number"
+            min="1"
+            max="20"
+            className={`w-full px-4 py-3 border-2 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all duration-300 ease-out ${
+              errors.maxParticipants
+                ? "border-red-500"
+                : "border-gray-200 dark:border-gray-700"
+            }`}
+            placeholder="Enter maximum participants (1-20)"
+            {...register("maxParticipants", { valueAsNumber: true })}
+            disabled={isSubmitting}
+          />
+          {errors.maxParticipants && (
+            <p className="text-sm mt-2 text-red-500">
+              {errors.maxParticipants.message}
+            </p>
           )}
-
-          <div className="flex items-center space-x-3">
-            <input
-              id="recordingEnabled"
-              type="checkbox"
-              className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-black dark:focus:ring-white focus:ring-offset-2 accent-black dark:accent-white"
-              {...register("recordingEnabled")}
-              disabled={isSubmitting}
-            />
-            <label
-              htmlFor="recordingEnabled"
-              className="text-sm font-medium text-gray-900 dark:text-white"
-            >
-              Enable Recording
-            </label>
-          </div>
         </div>
 
         {errors.root && (

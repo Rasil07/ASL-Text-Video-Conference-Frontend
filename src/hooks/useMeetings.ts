@@ -8,9 +8,9 @@ import {
   getActiveMeetings,
   createMeeting,
   joinMeeting,
-  getMeetingById,
+  // getMeetingById,
 } from "@/api/meetings";
-import { VideoRoom, CreateRoomFormData } from "@/types";
+import { VideoRoom, CreateRoomFormData, IRoom } from "@/types";
 
 // Query keys
 export const meetingKeys = {
@@ -30,21 +30,21 @@ export const useActiveMeetings = () => {
 };
 
 // Get meeting by ID
-export const useMeeting = (meetingId: string) => {
-  return useQuery({
-    queryKey: meetingKeys.detail(meetingId),
-    queryFn: () => getMeetingById(meetingId),
-    enabled: !!meetingId,
-  });
-};
+// export const useMeeting = (meetingId: string) => {
+//   return useQuery({
+//     queryKey: meetingKeys.detail(meetingId),
+//     queryFn: () => getMeetingById(meetingId),
+//     enabled: !!meetingId,
+//   });
+// };
 
 // Create meeting mutation
 export const useCreateMeetingMutation = (
-  options?: UseMutationOptions<VideoRoom, Error, CreateRoomFormData>
+  options?: UseMutationOptions<IRoom, Error, CreateRoomFormData>
 ) => {
   const queryClient = useQueryClient();
 
-  return useMutation<VideoRoom, Error, CreateRoomFormData>({
+  return useMutation<IRoom, Error, CreateRoomFormData>({
     mutationFn: createMeeting,
     onSuccess: () => {
       // Invalidate and refetch active meetings

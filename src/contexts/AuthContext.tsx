@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { verifyToken } from "@/api/auth";
 import { UserResponse } from "@/types";
+import { useSocketConnection } from "./SocketContext";
 
 import browserCookie from "@/lib/cookie";
 
@@ -32,6 +33,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isMounted, setIsMounted] = useState(false);
   const [user, setUser] = useState<UserResponse | null>(null);
 
+  // Get socket connection functions
+  const { refreshConnection, disconnect } = useSocketConnection();
+
   const verifyAuth = async (): Promise<boolean> => {
     try {
       const token = browserCookie.getBrowserToken();
@@ -57,6 +61,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Verify token ==>", { response });
       if (response.success) {
         setIsAuthenticated(true);
+
+        // Refresh socket connection with new auth token
+        refreshConnection();
+
         return true;
       } else {
         // Token is invalid, clear it
@@ -84,6 +92,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     browserCookie.removeBrowserUser();
     setIsAuthenticated(false);
     setUser(null);
+
+    // Disconnect socket connection on logout
+    disconnect();
   };
 
   useEffect(() => {

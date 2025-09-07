@@ -1,6 +1,11 @@
+"use client";
+
 import api from "./axios";
-import { VideoRoom, CreateRoomFormData } from "@/types";
+import { VideoRoom, CreateRoomFormData, IRoom, MeetingSummary } from "@/types";
+import { emitWithAck, getSocket } from "@/lib/socket";
+
 import { mockRooms } from "@/data/mockRooms";
+import { SOCKET_EVENTS } from "@/config/socket_events";
 
 // For development, we'll use mock data. In production, these would call the actual API
 const USE_MOCK_DATA = true;
@@ -17,68 +22,80 @@ export const getActiveMeetings = async (): Promise<VideoRoom[]> => {
   return response.data;
 };
 
-export const createMeeting = async (
-  meetingData: CreateRoomFormData
-): Promise<VideoRoom> => {
-  if (USE_MOCK_DATA) {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Create a new mock meeting
-    const newMeeting: VideoRoom = {
-      id: `mock-${Date.now()}`,
-      title: meetingData.title,
-      description: meetingData.description,
-      hostName: "You", // In real app, this would come from user context
-      isActive: true,
-      participantCount: 1,
-      maxParticipants: meetingData.maxParticipants,
-      category: meetingData.category,
-      tags: [],
-      createdAt: new Date(),
-      lastActive: new Date(),
-      meetingId: `meeting-${Date.now()}`,
-      isPrivate: meetingData.isPrivate,
-      recordingEnabled: meetingData.recordingEnabled,
-    };
-
-    return newMeeting;
-  }
-
-  const response = await api.post("/meetings", meetingData);
-  return response.data;
-};
-
 export const joinMeeting = async (
-  meetingId: string
+  roomCode: string
 ): Promise<{ roomUrl: string }> => {
   if (USE_MOCK_DATA) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    // Return a mock room URL
+    // Return a mock room URL using room code
     return {
-      roomUrl: `https://meet.example.com/room/${meetingId}`,
+      roomUrl: `https://meet.example.com/room/${roomCode}`,
     };
   }
 
-  const response = await api.post(`/meetings/${meetingId}/join`);
+  const response = await api.post(`/rooms/${roomCode}/join`);
   return response.data;
 };
 
-export const getMeetingById = async (meetingId: string): Promise<VideoRoom> => {
+export const getRoomByCode = async (roomCode: string): Promise<IRoom> => {
   if (USE_MOCK_DATA) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const meeting = mockRooms.find((room) => room.id === meetingId);
-    if (!meeting) {
-      throw new Error("Meeting not found");
+    const room = mockRooms.find((room) => room.code === roomCode);
+    if (!room) {
+      throw new Error("Room not found");
     }
 
-    return meeting;
+    return room;
   }
 
-  const response = await api.get(`/meetings/${meetingId}`);
+  const response = await api.get(`/rooms/code/${roomCode}`);
   return response.data;
 };
+
+// Remove the old MeetingSummary type since it's now defined in types/index.ts
+
+export async function listMeetings(): Promise<{
+  rooms: MeetingSummary[];
+  success: boolean;
+}> {
+  // Only make Socket.IO calls on client side
+  if (typeof window === "undefined") {
+    return { rooms: [], success: false };
+  }
+  return emitWithAck<{ rooms: MeetingSummary[]; success: boolean }>(
+    SOCKET_EVENTS.ROOM.LIST
+  );
+}
+
+export const createMeeting = async (
+  meetingData: CreateRoomFormData
+): Promise<{ success: boolean; room: IRoom }> => {
+  return emitWithAck<{ success: boolean; room: IRoom }>(
+    SOCKET_EVENTS.ROOM.CREATE,
+    meetingData
+  );
+};
+
+export function onMeetingListChanged(cb: (m: MeetingSummary[]) => void) {
+  // Only set up listeners on client side
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+  const s = getSocket();
+  s.on(SOCKET_EVENTS.ROOM.LIST_CHANGED, cb);
+  return () => s.off(SOCKET_EVENTS.ROOM.LIST_CHANGED, cb);
+}
+
+export function onMeetingCreated(cb: (m: MeetingSummary) => void) {
+  // Only set up listeners on client side
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+  const s = getSocket();
+  s.on(SOCKET_EVENTS.ROOM.CREATE, cb);
+  return () => s.off(SOCKET_EVENTS.ROOM.CREATE, cb);
+}

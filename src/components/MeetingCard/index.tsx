@@ -1,30 +1,19 @@
 "use client";
 
-import { VideoRoom } from "@/types";
-import { useJoinMeetingMutation } from "@/hooks/useMeetings";
+import { MeetingSummary } from "@/types";
 import { useState } from "react";
 
 interface MeetingCardProps {
-  room: VideoRoom;
+  room: MeetingSummary;
 }
 
 const MeetingCard = ({ room }: MeetingCardProps) => {
   const [isJoining, setIsJoining] = useState(false);
 
-  const { mutate: joinMeeting } = useJoinMeetingMutation({
-    onSuccess: (data) => {
-      // Redirect to the meeting room
-      window.location.href = data.roomUrl;
-    },
-    onError: (error) => {
-      console.error("Failed to join meeting:", error);
-      setIsJoining(false);
-    },
-  });
-
   const handleJoinMeeting = () => {
     setIsJoining(true);
-    joinMeeting(room.id);
+    // Open meeting room in a new tab
+    window.open(`/meeting/${room.code}`, "_blank");
   };
 
   const formatDate = (date: Date) => {
@@ -37,13 +26,15 @@ const MeetingCard = ({ room }: MeetingCardProps) => {
   };
 
   const getParticipantStatus = () => {
-    if (room.participantCount >= room.maxParticipants) {
+    const participantCount = room.participantCount || 0;
+    if (participantCount >= room.options.maxParticipants) {
       return "Full";
     }
-    return `${room.participantCount}/${room.maxParticipants}`;
+    return `${participantCount}/${room.options.maxParticipants}`;
   };
 
-  const isRoomFull = room.participantCount >= room.maxParticipants;
+  const isRoomFull =
+    (room.participantCount || 0) >= room.options.maxParticipants;
 
   return (
     <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-md shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 ease-out">
@@ -57,13 +48,13 @@ const MeetingCard = ({ room }: MeetingCardProps) => {
               {room.description}
             </p>
           </div>
-          {room.isPrivate && (
+          {/* {room.isPrivate && (
             <div className="ml-3 flex-shrink-0">
               <span className="bg-orange-300 text-white rounded-sm px-3 py-1 text-xs font-medium cursor-pointer ">
                 Private
               </span>
             </div>
-          )}
+          )} */}
         </div>
 
         <div className="space-y-3 mb-6">
@@ -83,7 +74,7 @@ const MeetingCard = ({ room }: MeetingCardProps) => {
                 />
               </svg>
             </div>
-            <span className="font-medium">{room.hostName}</span>
+            <span className="font-medium">{room.host}</span>
           </div>
 
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
@@ -121,7 +112,26 @@ const MeetingCard = ({ room }: MeetingCardProps) => {
                 />
               </svg>
             </div>
-            <span>{room.category}</span>
+            <span>{room.status}</span>
+          </div>
+
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+            <div className="w-8 h-8 flex items-center justify-center mr-3 bg-gray-100 dark:bg-gray-800 rounded">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                />
+              </svg>
+            </div>
+            <span>Code: {room.code}</span>
           </div>
 
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
@@ -144,7 +154,7 @@ const MeetingCard = ({ room }: MeetingCardProps) => {
           </div>
         </div>
 
-        {room.tags.length > 0 && (
+        {/* {room.tags.length > 0 && (
           <div className="mb-6">
             <div className="flex flex-wrap gap-2">
               {room.tags.slice(0, 3).map((tag, index) => (
@@ -162,7 +172,7 @@ const MeetingCard = ({ room }: MeetingCardProps) => {
               )}
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="flex items-center justify-between">
           <button

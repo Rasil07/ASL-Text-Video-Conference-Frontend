@@ -2,32 +2,39 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useActiveMeetings } from "@/hooks/useMeetings";
 import MeetingGrid from "@/components/MeetingGrid";
 import CreateMeetingForm from "@/components/CreateMeetingForm";
 import { useSocketConnection } from "@/contexts/SocketContext";
+import { useRooms } from "@/hooks/useRooms";
+
+import { IRoom } from "@/types";
 
 export default function Dashboard() {
   const { logout, user } = useAuth();
-  const { data: meetings, isLoading, error, refetch } = useActiveMeetings();
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const { connected } = useSocketConnection();
+  // Use the new room management hook with real-time updates
+  const { rooms: meetings, isLoading, error, refetch } = useRooms();
 
-  console.log("connected ==>", { connected });
+  const { connected, isClient } = useSocketConnection();
 
   const handleLogout = () => {
     logout();
   };
 
-  const handleCreateSuccess = () => {
+  const handleCreateSuccess = (data: { success: boolean; room: IRoom }) => {
     setShowCreateForm(false);
-    refetch(); // Refresh the meetings list
+
+    console.log("new room created data ==>", data);
+    // Open meeting room in a new tab
+    window.open(`/meeting/${data?.room?.code}`, "_blank");
   };
 
   const handleCreateCancel = () => {
     setShowCreateForm(false);
   };
+
+  console.log("meetings ==>", { meetings, isLoading });
 
   if (showCreateForm) {
     return (
@@ -128,11 +135,25 @@ export default function Dashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
-                Active Meetings
-              </h2>
+              <div className="flex items-center space-x-3">
+                <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
+                  Active Meetings
+                </h2>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      isClient && connected ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  ></div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {isClient && connected ? "Live" : "Offline"}
+                  </span>
+                </div>
+              </div>
               <p className="text-sm mt-1 text-gray-600 dark:text-gray-300">
-                Join ongoing conversations and learning sessions
+                {isClient && connected
+                  ? "Real-time updates enabled - Join ongoing conversations and learning sessions"
+                  : "Join ongoing conversations and learning sessions"}
               </p>
             </div>
             <button
