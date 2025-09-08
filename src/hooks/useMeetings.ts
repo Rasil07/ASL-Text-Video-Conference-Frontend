@@ -40,13 +40,21 @@ export const useActiveMeetings = () => {
 
 // Create meeting mutation
 export const useCreateMeetingMutation = (
-  options?: UseMutationOptions<IRoom, Error, CreateRoomFormData>
+  options?: UseMutationOptions<
+    { success: boolean; room: IRoom },
+    Error,
+    CreateRoomFormData
+  >
 ) => {
   const queryClient = useQueryClient();
 
-  return useMutation<IRoom, Error, CreateRoomFormData>({
+  return useMutation<
+    { success: boolean; room: IRoom },
+    Error,
+    CreateRoomFormData
+  >({
     mutationFn: createMeeting,
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalidate and refetch active meetings
       queryClient.invalidateQueries({ queryKey: meetingKeys.active() });
     },

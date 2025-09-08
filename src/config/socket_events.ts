@@ -19,6 +19,8 @@ export const SOCKET_EVENTS = {
     LIST_CHANGED: "room:list-changed",
     // Participant Management
     UPDATE_PARTICIPANT_STATUS: "room:update-participant-status",
+    NEW_PRODUCER: "room:new-producer",
+    PRODUCER_CLOSED: "room:producer-closed",
   },
 
   // ============================================================================
@@ -45,6 +47,7 @@ export const SOCKET_EVENTS = {
     CLOSE_PRODUCER: "media:close-producer",
 
     // Consumer Management
+    CREATE_CONSUMER: "media:create-consumer",
     CONSUME: "media:consume",
     RESUME_CONSUMER: "media:resume-consumer",
     PAUSE_CONSUMER: "media:pause-consumer",
@@ -52,6 +55,7 @@ export const SOCKET_EVENTS = {
 
     // RTP Capabilities
     GET_RTP_CAPABILITIES: "media:get-rtp-capabilities",
+    SET_RTP_CAPABILITIES: "media:set-rtp-capabilities",
   },
 
   // ============================================================================

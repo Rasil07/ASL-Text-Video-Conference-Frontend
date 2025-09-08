@@ -12,7 +12,11 @@ interface RoomEventHandlers {
   onRoomDeleted?: (roomId: string) => void;
   onRoomListChanged?: (rooms: MeetingSummary[]) => void;
   onRoomEnded?: (roomId: string) => void;
-  onParticipantJoined?: (data: { code: string; participant: any }) => void;
+  onParticipantJoined?: (data: {
+    code: string;
+    participant: any;
+    producers: any[];
+  }) => void;
   onParticipantLeft?: (data: { code: string; participantId: string }) => void;
   onParticipantStatusUpdated?: (data: {
     roomId: string;
@@ -72,7 +76,7 @@ export const useRoomEvents = (handlers: RoomEventHandlers) => {
 
   // Participant events
   const handleParticipantJoined = useCallback(
-    (data: { roomId: string; participant: any }) => {
+    (data: { code: string; participant: any; producers: any[] }) => {
       console.log("Participant joined:", data);
       handlers.onParticipantJoined?.(data);
     },
@@ -80,7 +84,7 @@ export const useRoomEvents = (handlers: RoomEventHandlers) => {
   );
 
   const handleParticipantLeft = useCallback(
-    (data: { roomId: string; participantId: string }) => {
+    (data: { code: string; participantId: string }) => {
       console.log("Participant left:", data);
       handlers.onParticipantLeft?.(data);
     },
