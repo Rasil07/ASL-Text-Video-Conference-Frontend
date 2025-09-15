@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ASL Text Video Conference — Frontend
 
-## Getting Started
+A Next.js (App Router) frontend for real-time video conferencing with ASL/text-first UX. It provides multi-peer video tiles, audio-only handling, and basic meeting controls.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Next.js 14+ (React, App Router)
+- TypeScript
+- Tailwind CSS
+- WebRTC (MediaStream APIs)
+- Context/Custom Hooks (AuthContext, useMeetingRoom)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Join meeting by code (route: /meeting/[code])
+- Local preview with mirror and mute
+- Remote participants grid with responsive layout
+- Audio-only peers handled via hidden audio sinks
+- Basic controls: Leave, Toggle Camera, Mute/Unmute
+- Track merging per peer (single combined audio/video stream per peer)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Structure (selected)
 
-## Learn More
+- src/app/(protected)/meeting/[code]/page.tsx — meeting UI
+- src/components/Meeting/VideoTile.tsx — media tile component
+- src/hooks/useMeetingRoom.ts — meeting client, media and signaling
+- src/contexts/AuthContext.tsx — authentication context/provider
+- tailwind.config.js, postcss.config.js, src/styles/globals.css — styling
 
-To learn more about Next.js, take a look at the following resources:
+## Prerequisites
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Node.js 18+ and npm 9+
+- Modern browser with camera/microphone
+- Running signaling/media backend compatible with useMeetingRoom
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment Variables (.env.local)
 
-## Deploy on Vercel
+Adjust to your backend/signaling:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- NEXT_PUBLIC_API_BASE_URL=https://api.example.com
+- NEXT_PUBLIC_SIGNALING_URL=wss://signal.example.com
+- NEXT_PUBLIC_TURN_URL=turns:turn.example.com:5349 (optional)
+- NEXT_PUBLIC_TURN_USERNAME=...
+- NEXT_PUBLIC_TURN_PASSWORD=...
+- AUTH\_... (as required by your Auth provider, if applicable)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Create .env.local at repo root and populate the above.
+
+## Setup
+
+- npm install
+- npm run dev
+- Open http://localhost:3000
+
+## Build & Run
+
+- Production build: npm run build
+- Start: npm start
+
+## Linting
+
+- npm run lint (if configured)
+
+## Usage
+
+- Navigate to /meeting/<roomCode>
+- Allow camera and microphone permissions
+- Controls:
+  - Leave: disconnects from the room
+  - Toggle Camera: enables/disables local video track
+  - Mute/Unmute: enables/disables local audio track
+
+## Core Concepts
+
+- VideoTile: Renders MediaStream, supports mirror, mute, and label
+- useMeetingRoom(code):
+  - status: "connecting" | "connected" | "disconnected" | ...
+  - error: string | null
+  - localStream: MediaStream | undefined
+  - remoteTiles: Array<{ peerId, stream, kind: "audio" | "video", producerId, consumerId, userName?, userEmail? }>
+  - client:
+    - getLocalStream(): MediaStream | undefined
+    - leave(): void
+- AudioSink: Plays audio for audio-only peers without rendering a video tile
+- Stream merge: Audio and video tracks per peer are merged into a single MediaStream for consistent UI
+
+## Styling
+
+- Tailwind CSS utility classes for responsive grid and theming (light/dark)
+- Aspect ratios maintained for tiles (16:9)
+
+## Accessibility
+
+- Use system/browser-level mic and camera controls when needed
+- Provide user labels for tiles (userName fallback to "Participant")
+
+## Security & Privacy
+
+- Serve over HTTPS to access camera/microphone
+- Do not commit secrets; use .env.local
+- Inform users about recording policies if enabled server-side
+
+## Deployment
+
+- Vercel or any Node-compatible host
+- Set environment variables in the hosting platform
+- Ensure signaling/media servers are reachable from the deployed origin
+
+## Troubleshooting
+
+- No video/audio:
+  - Verify browser permissions and HTTPS
+  - Confirm signaling URL and backend reachability
+- Black tile or frozen video:
+  - Check track enabled state and network conditions
+- Echo or feedback:
+  - Use headphones; avoid open speakers and mic in the same room
+
+## Contributing
+
+- Create a branch, follow conventional commits, open a PR
+- Keep hooks/components typed and cohesive; avoid side effects in render
+- Test across Chromium and WebKit-based browsers
+
+## License
+
+- Specify license for this project (e.g., MIT) in a LICENSE file.
