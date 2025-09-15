@@ -12,6 +12,7 @@ export const SOCKET_EVENTS = {
     // Room Management
     CREATE: "room:create",
     JOIN: "room:join",
+
     LEAVE: "room:leave",
     END: "room:end",
     LIST: "room:list",
@@ -21,6 +22,15 @@ export const SOCKET_EVENTS = {
     UPDATE_PARTICIPANT_STATUS: "room:update-participant-status",
     NEW_PRODUCER: "room:new-producer",
     PRODUCER_CLOSED: "room:producer-closed",
+
+    GET_PRODUCERS: "room:get-producers",
+
+    ON: {
+      PEER_JOINED: "room:peer-joined",
+      PEER_LEFT: "room:peer-left",
+      NEW_PRODUCER: "room:new-producer",
+      PRODUCER_CLOSED: "room:producer-closed",
+    },
   },
 
   // ============================================================================
@@ -56,6 +66,7 @@ export const SOCKET_EVENTS = {
     // RTP Capabilities
     GET_RTP_CAPABILITIES: "media:get-rtp-capabilities",
     SET_RTP_CAPABILITIES: "media:set-rtp-capabilities",
+    RESUME_CONSUMER: "media:resume-consumers",
   },
 
   // ============================================================================
@@ -194,11 +205,11 @@ export const isValidSocketEvent = (
   return allEvents.includes(eventName as SocketEventName);
 };
 
-export const isRoomEvent = (
-  eventName: string
-): eventName is (typeof SOCKET_EVENTS.ROOM)[keyof typeof SOCKET_EVENTS.ROOM] => {
-  return (Object.values(SOCKET_EVENTS.ROOM) as string[]).includes(eventName);
-};
+// export const isRoomEvent = (
+//   eventName: string
+// ): eventName is (typeof SOCKET_EVENTS.ROOM)[keyof typeof SOCKET_EVENTS.ROOM] => {
+//   return (Object.values(SOCKET_EVENTS.ROOM) as string[]).includes(eventName);
+// };
 
 export const isMeetingEvent = (
   eventName: string

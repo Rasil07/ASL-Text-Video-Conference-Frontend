@@ -150,7 +150,7 @@ const MeetingCard = ({ room }: MeetingCardProps) => {
                 />
               </svg>
             </div>
-            <span>{formatDate(room.createdAt)}</span>
+            <span>{formatDate(room.createdAt || room?.startedAt)}</span>
           </div>
         </div>
 

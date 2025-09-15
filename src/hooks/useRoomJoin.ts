@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface RoomJoinResult {
   success: boolean;
+  statusCode?: number;
   room?: {
     id: string;
     code: string;
@@ -69,30 +70,27 @@ export const useRoomJoin = ({
 
       console.log("Room join result:", result);
 
-      if (result.success) {
+      if (result.statusCode === 200) {
         setJoinResult(result);
         onSuccess?.(result.room);
       } else {
-        // Handle different error cases
-        if (result.requiresAuth) {
+        if (result.statusCode === 401) {
           console.log("Authentication required");
           onAuthRequired?.();
           router.push("/auth/login");
-        } else if (result.roomNotFound) {
+        }
+        if (result.statusCode === 404) {
           console.log("Room not found");
           onError?.(
             "Room not found. Please check the room code and try again."
           );
-        } else if (result.roomNotAvailable) {
+        }
+        if (result.statusCode === 403) {
           console.log("Room not available");
           onError?.(
             "This room is not currently available. It may have ended or been deleted."
           );
-        } else {
-          console.log("General error:", result.error);
-          onError?.(result.error || "Failed to join room. Please try again.");
         }
-        setJoinResult(result);
       }
     } catch (error) {
       console.error("Failed to join room:", error);
